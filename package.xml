@@ -6,11 +6,11 @@
   <name>rm_serial_driver</name>
   <version>1.0.0</version>
   <description>RoboMaster serial driver.</description>
-  <maintainer email="defateyz@gmail.com">Zheng Yu</maintainer>
-  <license>Apache-2.0 License</license>
-  <url type="website">https://github.com/FaterYU/rm_serial_driver</url>
-  <url type="bugtracker">https://github.com/FaterYU/rm_serial_driver/issues</url>
-  <author email="defateyz@gmail.com">Zheng Yu</author>
+  <maintainer email="20234001019@m.scnu.edu.cn">oy</maintainer>
+  <license>MIT</license>
+  <url type="website">https://github.com/ouyyyyang/rm_fire_control</url>
+  <url type="bugtracker">https://github.com/ouyyyyang/rm_fire_control/issues</url>
+  <author email="20234001019@m.scnu.edu.cn">Ouyang Zhuohan</author>
 
   <!-- buildtool_depend: dependencies of the build process -->
   <buildtool_depend>ament_cmake</buildtool_depend>
