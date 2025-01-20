@@ -30,6 +30,8 @@
 #include "auto_aim_interfaces/msg/time_info.hpp"
 #include "buff_interfaces/msg/rune.hpp"
 #include "buff_interfaces/msg/time_info.hpp"
+#include "fire_control_interfaces/msg/gimbal_cmd.hpp"
+
 
 namespace rm_serial_driver
 {
@@ -54,6 +56,8 @@ private:
   void sendBuffData(
     const buff_interfaces::msg::Rune::ConstSharedPtr msg,
     const buff_interfaces::msg::TimeInfo::ConstSharedPtr time_info);
+
+  void sendGimbalData(const fire_control_interfaces::msg::GimbalCmd::ConstSharedPtr msg);
 
   void reopenPort();
 
@@ -108,6 +112,9 @@ private:
     buff_syncpolicy;
   typedef message_filters::Synchronizer<buff_syncpolicy> BuffSync;
   std::shared_ptr<BuffSync> buff_sync_;
+
+  // gimbal
+  rclcpp::Subscription<fire_control_interfaces::msg::GimbalCmd>::SharedPtr gimbal_sub_;
 
   // For debug usage
   rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr latency_pub_;

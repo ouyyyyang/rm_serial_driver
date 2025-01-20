@@ -49,6 +49,10 @@ struct SendPacket
   float r1;
   float r2;
   float dz;
+  float yaw_diff;
+  float pitch_diff;
+  bool fire_advice;
+
   uint32_t cap_timestamp;  // (ms) frame capture time
   uint16_t t_offset;       // (ms) speed t offset
   uint16_t checksum = 0;
@@ -73,3 +77,4 @@ inline std::vector<uint8_t> toVector(const SendPacket & data)
 }  // namespace rm_serial_driver
 
 #endif  // RM_SERIAL_DRIVER__PACKET_HPP_
+  float fire_v;

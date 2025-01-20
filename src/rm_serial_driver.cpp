@@ -88,12 +88,18 @@ RMSerialDriver::RMSerialDriver(const rclcpp::NodeOptions & options)
   rune_sub_.subscribe(this, "/tracker/rune");
   buff_time_info_sub_.subscribe(this, "/time_info/buff");
 
+  gimbal_sub_ = this->create_subscription<fire_control_interfaces::msg::GimbalCmd>(  
+  "fire_control/cmd_gimbal",   
+  rclcpp::SensorDataQoS(),  
+  std::bind(&RMSerialDriver::sendGimbalData, this, std::placeholders::_1)); 
+
+
   aim_sync_ = std::make_unique<AimSync>(aim_syncpolicy(500), aim_sub_, aim_time_info_sub_);
   aim_sync_->registerCallback(
     std::bind(&RMSerialDriver::sendArmorData, this, std::placeholders::_1, std::placeholders::_2));
   buff_sync_ = std::make_unique<BuffSync>(buff_syncpolicy(1500), rune_sub_, buff_time_info_sub_);
   buff_sync_->registerCallback(
-    std::bind(&RMSerialDriver::sendBuffData, this, std::placeholders::_1, std::placeholders::_2));
+    std::bind(&RMSerialDriver::sendBuffData, this, std::placeholders::_1, std::placeholders::_2));  
 }
 
 RMSerialDriver::~RMSerialDriver()
@@ -247,18 +253,42 @@ void RMSerialDriver::sendArmorData(
     packet.r1 = msg->radius_1;
     packet.r2 = msg->radius_2;
     packet.dz = msg->dz;
+
+    packet.yaw_diff = 0.0;
+    packet.pitch_diff = 0.0;
+    packet.fire_advice = false;
     // 20240329 ZY: Eliminate communication latency
     packet.cap_timestamp = time_info->time;
     crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
     std::vector<uint8_t> data = toVector(packet);
 
-    serial_driver_->port()->send(data);
+    //serial_driver_->port()->send(data);  //不给发
 
     std_msgs::msg::Float64 latency;
     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
     RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
     latency_pub_->publish(latency);
+  } catch (const std::exception & ex) {
+    RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
+    reopenPort();
+  }
+}
+
+void RMSerialDriver::sendGimbalData(
+  const fire_control_interfaces::msg::GimbalCmd::ConstSharedPtr msg)
+{
+  try {
+    SendPacket packet;
+    packet.yaw_diff = msg->yaw_diff;
+    packet.pitch_diff = msg->pitch_diff;
+    packet.fire_advice = msg->fire_advice;
+
+    crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+
+    std::vector<uint8_t> data = toVector(packet);
+
+    serial_driver_->port()->send(data);
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
     reopenPort();
@@ -285,6 +315,11 @@ void RMSerialDriver::sendBuffData(
     packet.r1 = 0.0;
     packet.r2 = 0.0;
     packet.dz = 0.0;
+
+    packet.yaw_diff = 0.0;
+    packet.pitch_diff = 0.0;
+    packet.fire_advice = false;
+
     packet.cap_timestamp = time_info->time;
     if (rune->w == 0) {
       packet.t_offset = 0;

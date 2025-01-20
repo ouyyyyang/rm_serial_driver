@@ -25,6 +25,7 @@
   <depend>visualization_msgs</depend>
   <depend>auto_aim_interfaces</depend>
   <depend>buff_interfaces</depend>
+  <depend>fire_control_interfaces</depend>
   <depend>std_srvs</depend>
   <depend>std_msgs</depend>
   <depend>message_filters</depend>
