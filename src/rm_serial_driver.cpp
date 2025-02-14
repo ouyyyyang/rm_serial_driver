@@ -83,23 +83,24 @@ RMSerialDriver::RMSerialDriver(const rclcpp::NodeOptions & options)
   // aim_sub_ = this->create_subscription<auto_aim_interfaces::msg::Target>(
   //   "/tracker/target", rclcpp::SensorDataQoS(),
   //   std::bind(&RMSerialDriver::sendArmorData, this, std::placeholders::_1));
-  aim_sub_.subscribe(this, "/tracker/target", rclcpp::SensorDataQoS().get_rmw_qos_profile());
-  aim_time_info_sub_.subscribe(this, "/time_info/aim");
-  rune_sub_.subscribe(this, "/tracker/rune");
-  buff_time_info_sub_.subscribe(this, "/time_info/buff");
+
+
+  // aim_sub_.subscribe(this, "/tracker/target", rclcpp::SensorDataQoS().get_rmw_qos_profile());
+  // aim_time_info_sub_.subscribe(this, "/time_info/aim");
+  // rune_sub_.subscribe(this, "/tracker/rune");
+  // buff_time_info_sub_.subscribe(this, "/time_info/buff");
 
   gimbal_sub_ = this->create_subscription<fire_control_interfaces::msg::GimbalCmd>(  
-  "fire_control/cmd_gimbal",   
-  rclcpp::SensorDataQoS(),  
+  "fire_control/cmd_gimbal", rclcpp::SensorDataQoS(),  
   std::bind(&RMSerialDriver::sendGimbalData, this, std::placeholders::_1)); 
 
 
-  aim_sync_ = std::make_unique<AimSync>(aim_syncpolicy(500), aim_sub_, aim_time_info_sub_);
-  aim_sync_->registerCallback(
-    std::bind(&RMSerialDriver::sendArmorData, this, std::placeholders::_1, std::placeholders::_2));
-  buff_sync_ = std::make_unique<BuffSync>(buff_syncpolicy(1500), rune_sub_, buff_time_info_sub_);
-  buff_sync_->registerCallback(
-    std::bind(&RMSerialDriver::sendBuffData, this, std::placeholders::_1, std::placeholders::_2));  
+  // aim_sync_ = std::make_unique<AimSync>(aim_syncpolicy(500), aim_sub_, aim_time_info_sub_);
+  // aim_sync_->registerCallback(
+  //   std::bind(&RMSerialDriver::sendArmorData, this, std::placeholders::_1, std::placeholders::_2));
+  // buff_sync_ = std::make_unique<BuffSync>(buff_syncpolicy(1500), rune_sub_, buff_time_info_sub_);
+  // buff_sync_->registerCallback(
+  //   std::bind(&RMSerialDriver::sendBuffData, this, std::placeholders::_1, std::placeholders::_2));  
 }
 
 RMSerialDriver::~RMSerialDriver()
@@ -229,9 +230,54 @@ void RMSerialDriver::receiveData()
   }
 }
 
-void RMSerialDriver::sendArmorData(
-  const auto_aim_interfaces::msg::Target::ConstSharedPtr msg,
-  const auto_aim_interfaces::msg::TimeInfo::ConstSharedPtr time_info)
+// void RMSerialDriver::sendArmorData(
+//   const auto_aim_interfaces::msg::Target::ConstSharedPtr msg,
+//   const auto_aim_interfaces::msg::TimeInfo::ConstSharedPtr time_info)
+// {
+//   const static std::map<std::string, uint8_t> id_unit8_map{
+//     {"", 0},  {"outpost", 0}, {"1", 1}, {"1", 1},     {"2", 2},
+//     {"3", 3}, {"4", 4},       {"5", 5}, {"guard", 6}, {"base", 7}};
+
+//   try {
+//     SendPacket packet;
+//     packet.state = msg->tracking ? 1 : 0;
+//     packet.id = id_unit8_map.at(msg->id);
+//     packet.armors_num = msg->armors_num;
+//     packet.x = msg->position.x;
+//     packet.y = msg->position.y;
+//     packet.z = msg->position.z;
+//     packet.yaw = msg->yaw;
+//     packet.vx = msg->velocity.x;
+//     packet.vy = msg->velocity.y;
+//     packet.vz = msg->velocity.z;
+//     packet.v_yaw = msg->v_yaw;
+//     packet.r1 = msg->radius_1;
+//     packet.r2 = msg->radius_2;
+//     packet.dz = msg->dz;
+
+//     packet.yaw_diff = 0.0;
+//     packet.pitch_diff = 0.0;
+//     packet.fire_advice = 0;
+//     // 20240329 ZY: Eliminate communication latency
+//     packet.cap_timestamp = time_info->time;
+//     crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+
+//     std::vector<uint8_t> data = toVector(packet);
+
+//     serial_driver_->port()->send(data);  //不给发
+
+//     std_msgs::msg::Float64 latency;
+//     latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
+//     RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
+//     latency_pub_->publish(latency);
+//   } catch (const std::exception & ex) {
+//     RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
+//     reopenPort();
+//   }
+// }
+
+void RMSerialDriver::sendGimbalData(
+  const fire_control_interfaces::msg::GimbalCmd::SharedPtr msg)
 {
   const static std::map<std::string, uint8_t> id_unit8_map{
     {"", 0},  {"outpost", 0}, {"1", 1}, {"1", 1},     {"2", 2},
@@ -242,109 +288,76 @@ void RMSerialDriver::sendArmorData(
     packet.state = msg->tracking ? 1 : 0;
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
-    packet.x = msg->position.x;
-    packet.y = msg->position.y;
-    packet.z = msg->position.z;
-    packet.yaw = msg->yaw;
-    packet.vx = msg->velocity.x;
-    packet.vy = msg->velocity.y;
-    packet.vz = msg->velocity.z;
-    packet.v_yaw = msg->v_yaw;
-    packet.r1 = msg->radius_1;
-    packet.r2 = msg->radius_2;
-    packet.dz = msg->dz;
-
-    packet.yaw_diff = 0.0;
-    packet.pitch_diff = 0.0;
-    packet.fire_advice = false;
-    // 20240329 ZY: Eliminate communication latency
-    packet.cap_timestamp = time_info->time;
-    crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
-
-    std::vector<uint8_t> data = toVector(packet);
-
-    //serial_driver_->port()->send(data);  //不给发
-
-    std_msgs::msg::Float64 latency;
-    latency.data = (this->now() - msg->header.stamp).seconds() * 1000.0;
-    RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
-    latency_pub_->publish(latency);
-  } catch (const std::exception & ex) {
-    RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
-    reopenPort();
-  }
-}
-
-void RMSerialDriver::sendGimbalData(
-  const fire_control_interfaces::msg::GimbalCmd::ConstSharedPtr msg)
-{
-  try {
-    SendPacket packet;
     packet.yaw_diff = msg->yaw_diff;
     packet.pitch_diff = msg->pitch_diff;
-    packet.fire_advice = msg->fire_advice;
-
-    crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
-
-    std::vector<uint8_t> data = toVector(packet);
-
-    serial_driver_->port()->send(data);
-  } catch (const std::exception & ex) {
-    RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
-    reopenPort();
-  }
-}
-
-void RMSerialDriver::sendBuffData(
-  const buff_interfaces::msg::Rune::ConstSharedPtr rune,
-  const buff_interfaces::msg::TimeInfo::ConstSharedPtr time_info)
-{
-  try {
-    SendPacket packet;
-    packet.state = rune->tracking ? 2 : 0;
-    packet.id = rune->offset_id;
-    packet.armors_num = rune->offset_id;
-    packet.x = rune->position.x;
-    packet.y = rune->position.y;
-    packet.z = rune->position.z;
-    packet.yaw = rune->theta;
-    packet.vx = rune->a;
-    packet.vy = rune->b;
-    packet.vz = rune->w;
-    packet.v_yaw = 0.0;
-    packet.r1 = 0.0;
-    packet.r2 = 0.0;
-    packet.dz = 0.0;
-
-    packet.yaw_diff = 0.0;
-    packet.pitch_diff = 0.0;
-    packet.fire_advice = false;
-
-    packet.cap_timestamp = time_info->time;
-    if (rune->w == 0) {
-      packet.t_offset = 0;
-    } else {
-      int T = abs(2 * 3.1415926 / rune->w * 1000);
-      int offset = (rune->t_offset - time_info->time % T) % T;
-      if (offset < 0) {
-        packet.t_offset = T + offset;
-      }
+    int i = 0;
+    if(msg->fire_advice){
+      i = 1;
     }
+    packet.fire_advice = i;
+
     crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
 
     std::vector<uint8_t> data = toVector(packet);
 
     serial_driver_->port()->send(data);
-
-    std_msgs::msg::Float64 latency;
-    latency.data = (this->now() - rune->header.stamp).seconds() * 1000.0;
-    RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
-    latency_pub_->publish(latency);
+    RCLCPP_INFO(get_logger(), "Successful send gimbal data!");
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
     reopenPort();
   }
 }
+
+// void RMSerialDriver::sendBuffData(
+//   const buff_interfaces::msg::Rune::ConstSharedPtr rune,
+//   const buff_interfaces::msg::TimeInfo::ConstSharedPtr time_info)
+// {
+//   try {
+//     SendPacket packet;
+//     packet.state = rune->tracking ? 2 : 0;
+//     packet.id = rune->offset_id;
+//     packet.armors_num = rune->offset_id;
+//     packet.x = rune->position.x;
+//     packet.y = rune->position.y;
+//     packet.z = rune->position.z;
+//     packet.yaw = rune->theta;
+//     packet.vx = rune->a;
+//     packet.vy = rune->b;
+//     packet.vz = rune->w;
+//     packet.v_yaw = 0.0;
+//     packet.r1 = 0.0;
+//     packet.r2 = 0.0;
+//     packet.dz = 0.0;
+
+//     packet.yaw_diff = 0.0;
+//     packet.pitch_diff = 0.0;
+//     packet.fire_advice = false;
+
+//     packet.cap_timestamp = time_info->time;
+//     if (rune->w == 0) {
+//       packet.t_offset = 0;
+//     } else {
+//       int T = abs(2 * 3.1415926 / rune->w * 1000);
+//       int offset = (rune->t_offset - time_info->time % T) % T;
+//       if (offset < 0) {
+//         packet.t_offset = T + offset;
+//       }
+//     }
+//     crc16::Append_CRC16_Check_Sum(reinterpret_cast<uint8_t *>(&packet), sizeof(packet));
+
+//     std::vector<uint8_t> data = toVector(packet);
+
+//     serial_driver_->port()->send(data);
+
+//     std_msgs::msg::Float64 latency;
+//     latency.data = (this->now() - rune->header.stamp).seconds() * 1000.0;
+//     RCLCPP_DEBUG_STREAM(get_logger(), "Total latency: " + std::to_string(latency.data) + "ms");
+//     latency_pub_->publish(latency);
+//   } catch (const std::exception & ex) {
+//     RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
+//     reopenPort();
+//   }
+// }
 
 void RMSerialDriver::getParams()
 {

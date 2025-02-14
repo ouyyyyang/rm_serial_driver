@@ -37,24 +37,24 @@ struct SendPacket
   uint8_t state : 2;       // 0-untracking 1-tracking-aim 2-tracking-buff
   uint8_t id : 3;          // aim: 0-outpost 6-guard 7-base
   uint8_t armors_num : 3;  // 2-balance 3-outpost 4-normal
-  float x;                 // aim: robot-center || buff: rune-center
-  float y;                 // aim: robot-center || buff: rune-center
-  float z;                 // aim: robot-center || buff: rune-center
-  float yaw;               // aim: robot-yaw || buff: rune-theta
-  // spd = a*sin(w*t)+b || spd > 0 ==> clockwise
-  float vx;  // aim: robot-vx || buff: rune spin speed param - a
-  float vy;  // aim: robot-vy || buff: rune spin speed param - b
-  float vz;  // aim: robot-vz || buff: rune spin speed param - w
-  float v_yaw;
-  float r1;
-  float r2;
-  float dz;
+  // float x;                 // aim: robot-center || buff: rune-center
+  // float y;                 // aim: robot-center || buff: rune-center
+  // float z;                 // aim: robot-center || buff: rune-center
+  // float yaw;               // aim: robot-yaw || buff: rune-theta
+  // // spd = a*sin(w*t)+b || spd > 0 ==> clockwise
+  // float vx;  // aim: robot-vx || buff: rune spin speed param - a
+  // float vy;  // aim: robot-vy || buff: rune spin speed param - b
+  // float vz;  // aim: robot-vz || buff: rune spin speed param - w
+  // float v_yaw;
+  // float r1;.j
+  // float r2;
+  // float dz;
   float yaw_diff;
   float pitch_diff;
-  bool fire_advice;
+  int fire_advice;
 
-  uint32_t cap_timestamp;  // (ms) frame capture time
-  uint16_t t_offset;       // (ms) speed t offset
+  // uint32_t cap_timestamp;  // (ms) frame capture time
+  // uint16_t t_offset;       // (ms) speed t offset
   uint16_t checksum = 0;
 } __attribute__((packed));
 
