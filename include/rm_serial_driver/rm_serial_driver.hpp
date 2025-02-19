@@ -57,7 +57,7 @@ private:
     const buff_interfaces::msg::Rune::ConstSharedPtr msg,
     const buff_interfaces::msg::TimeInfo::ConstSharedPtr time_info);
 
-  void sendGimbalData(const fire_control_interfaces::msg::GimbalCmd::ConstSharedPtr msg);
+  void sendGimbalData(const fire_control_interfaces::msg::GimbalCmd::SharedPtr msg);
 
   void reopenPort();
 

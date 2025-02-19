@@ -301,7 +301,6 @@ void RMSerialDriver::sendGimbalData(
     std::vector<uint8_t> data = toVector(packet);
 
     serial_driver_->port()->send(data);
-    RCLCPP_INFO(get_logger(), "Successful send gimbal data!");
   } catch (const std::exception & ex) {
     RCLCPP_ERROR(get_logger(), "Error while sending data: %s", ex.what());
     reopenPort();
