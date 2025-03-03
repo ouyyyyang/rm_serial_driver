@@ -40,7 +40,7 @@ RMSerialDriver::RMSerialDriver(const rclcpp::NodeOptions & options)
   // Create Publisher
   task_pub_ = this->create_publisher<std_msgs::msg::String>("/task_mode", 10);
   latency_pub_ = this->create_publisher<std_msgs::msg::Float64>("/latency", 10);
-  marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/aiming_point", 10);
+  // marker_pub_ = this->create_publisher<visualization_msgs::msg::Marker>("/aiming_point", 10);
   aim_time_info_pub_ =
     this->create_publisher<auto_aim_interfaces::msg::TimeInfo>("/time_info/aim", 10);
   buff_time_info_pub_ =
@@ -68,16 +68,16 @@ RMSerialDriver::RMSerialDriver(const rclcpp::NodeOptions & options)
     throw ex;
   }
 
-  aiming_point_.header.frame_id = "odom";
-  aiming_point_.ns = "aiming_point";
-  aiming_point_.type = visualization_msgs::msg::Marker::SPHERE;
-  aiming_point_.action = visualization_msgs::msg::Marker::ADD;
-  aiming_point_.scale.x = aiming_point_.scale.y = aiming_point_.scale.z = 0.12;
-  aiming_point_.color.r = 1.0;
-  aiming_point_.color.g = 1.0;
-  aiming_point_.color.b = 1.0;
-  aiming_point_.color.a = 1.0;
-  aiming_point_.lifetime = rclcpp::Duration::from_seconds(0.1);
+  // aiming_point_.header.frame_id = "odom";
+  // aiming_point_.ns = "aiming_point";
+  // aiming_point_.type = visualization_msgs::msg::Marker::SPHERE;
+  // aiming_point_.action = visualization_msgs::msg::Marker::ADD;
+  // aiming_point_.scale.x = aiming_point_.scale.y = aiming_point_.scale.z = 0.12;
+  // aiming_point_.color.r = 1.0;
+  // aiming_point_.color.g = 1.0;
+  // aiming_point_.color.b = 1.0;
+  // aiming_point_.color.a = 1.0;
+  // aiming_point_.lifetime = rclcpp::Duration::from_seconds(0.1);
 
   // Create Subscription
   // aim_sub_ = this->create_subscription<auto_aim_interfaces::msg::Target>(
@@ -209,13 +209,13 @@ void RMSerialDriver::receiveData()
           aim_time_info_pub_->publish(aim_time_info);
           buff_time_info_pub_->publish(buff_time_info);
 
-          if (abs(packet.aim_x) > 0.01) {
-            aiming_point_.header.stamp = this->now();
-            aiming_point_.pose.position.x = packet.aim_x;
-            aiming_point_.pose.position.y = packet.aim_y;
-            aiming_point_.pose.position.z = packet.aim_z;
-            marker_pub_->publish(aiming_point_);
-          }
+          // if (abs(packet.aim_x) > 0.01) {
+          //   aiming_point_.header.stamp = this->now();
+          //   aiming_point_.pose.position.x = packet.aim_x;
+          //   aiming_point_.pose.position.y = packet.aim_y;
+          //   aiming_point_.pose.position.z = packet.aim_z;
+          //   marker_pub_->publish(aiming_point_);
+          // }
         } else {
           RCLCPP_ERROR(get_logger(), "CRC error!");
         }
