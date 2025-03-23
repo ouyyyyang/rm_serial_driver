@@ -49,6 +49,9 @@ struct SendPacket
   // float r1;.j
   // float r2;
   // float dz;
+  float yaw;
+  float pitch;
+
   float yaw_diff;
   float pitch_diff;
   int fire_advice;
@@ -77,4 +80,3 @@ inline std::vector<uint8_t> toVector(const SendPacket & data)
 }  // namespace rm_serial_driver
 
 #endif  // RM_SERIAL_DRIVER__PACKET_HPP_
-  float fire_v;

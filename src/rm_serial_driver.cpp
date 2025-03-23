@@ -288,6 +288,9 @@ void RMSerialDriver::sendGimbalData(
     packet.state = msg->tracking ? 1 : 0;
     packet.id = id_unit8_map.at(msg->id);
     packet.armors_num = msg->armors_num;
+    packet.yaw = msg->yaw;
+    // packet.yaw = this->declare_parameter<double>("test_gimbal_v", M_PI / 6.0);
+    packet.pitch = msg->pitch;
     packet.yaw_diff = msg->yaw_diff;
     packet.pitch_diff = msg->pitch_diff;
     int i = 0;
